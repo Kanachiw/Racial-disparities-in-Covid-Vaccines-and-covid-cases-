@@ -1,196 +1,128 @@
-!/usr/bin/env python3
+
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Apr  1 13:04:29 2021
+Created on Tue Apr 13 11:31:58 2021
 
 @author: nickkalen and kanachiweli
 """
+# Nick Kalen and Kanachi Weli
 
 import csv
 import matplotlib.pyplot as plt
 
-# assigns csv files to variables
-
-filename1 = "covid_infections.csv"
-filename2 = "poverty_rate.csv"
-
-def read_csv(filename):
-    
-    """
-    Parameters: csv file
-    Returns: a list of lists of strings
-    Does: reads the csv file row by row, assigns all values a row to a list, 
-    appends each row list to a list
-    """
-    list1 = []
-    
-# reads csv file row by row, appends each row to list1 as a new list item
-
-    with open(filename, "r") as csvfile:
-        csv_reader = csv.reader(csvfile)
-    
+               
+def read_csvfile(filename, name ):
+    '''
+    Parameters: read csvfile using file and name of state
+    Return type: List of string for that statte and titles
+    '''
+    #open csv file
+    with open (filename, "r") as csvfile:
+        csv_reader = csv.reader(csvfile , delimiter = ",")
+       
+        #only save thee rows containing Location in the first position or the name of the state
         for row in csv_reader:
-            list1.append(row)
-            
-    return list1
+           
+            if row[0] == "Location":
+                rows_1 = row
+               
+            elif row[0] ==  name:
+                rows_2 = row
+               
+        #return both lists    
+        return [rows_1,rows_2]
+           
+def clean_row(rows):
+    '''
+    Parameters: clean csv file using rows
+    Return type: remove any NR(Nor reeported or 0 data ), only focus on the
+    races individually instead of agregate.
+    '''
+    #defining the rows
+    x_row = rows[1]
+    y_row = rows[0]
+   
+    #defining the list      
+    x_list = []
+    y_list = []
+   
+    # a list that iterates over all the provided races / ethnicities
+    for i in range(2,8):
+        row_x = x_row[i]
+       
+        #cleans out the O values
+        if row_x != '0' :
+            x_list.append(row_x)
+            row_y = y_row[i]
+            y_list.append(row_y)
+            #prints the corelations
+            print(row_y,":",round((float(row_x)*100),2),"%")
+           
+        #prints not reported
+        else:
+          row = y_row[i]
+          x = "Not reported"
+          print(row, ":",x)
+         
+    #returns a list  fo graphing      
+    return (x_list,y_list)
 
-def state_selection_infection(lst, state):
-    
-    """
-    Parameters: list of rows from csv file
-    Returns: list of list of values for each race
-    Does: creates lists for each race, appends values from list of lists
-    to respective race list based on column, appends race lists to "list_race"
-    """
-    
-# defines variable
-    
-    list_race = []
+def include_ethnicity(row):
+    '''
+    Parameters: search for ethnicity inclusioon
+    Return type: alert the reader if the race categories include hispanic"
+    '''
+    #uses the full list of numbers fro that state
+    x_row = row[1]
+   
+    #at position 2 if it has yes print message
+    for i in range(2):
+        row = x_row[i]
+        if row == "Yes":
+            y = "Categories include hispanic"
+        else:
+            y= "Categories don't include hispanic"
+           
+    return y
 
-# appends list items to specific "list_race"
-
-    for i in range(len(lst)):
-        for j in range(len(lst[i])):
-            if lst[i][j] == state:
-                list_race.append(lst[i][2])
-                list_race.append(lst[i][3])
-                list_race.append(lst[i][4])
-                list_race.append(lst[i][5])
-                list_race.append(lst[i][6])
-                list_race.append(lst[i][7])
-                list_race.append(lst[i][8])
-                list_race.append(lst[i][9])
-                
-    return list_race
-
-def state_selection_poverty(lst, state):
-    
-    """
-    Parameters: list of rows from csv file
-    Returns: list of list of values for each race
-    Does: creates lists for each race, appends values to "list_poverty"
-    """
-    
-# defines variable
-    
-    list_poverty = []
-
-# appends list items to specific "list_poverty"
-
-    for i in range(len(lst)):
-        for j in range(len(lst[i])):
-            if lst[i][j] == state:
-                list_poverty.append(lst[i][1])
-                list_poverty.append(lst[i][2])
-                list_poverty.append(lst[i][3])
-                list_poverty.append(lst[i][4])           
-    
-    return list_poverty
-                
-def string_to_float(lst):
-    
-    """
-    Parameters: a list strings
-    Returns: list of floats
-    Does: converts each item in list of lists to float, appends floats to 
-    "list_float"
-    """
-
-# defines variable
-    
-    list_float = []
-    
-# converts list of lists of strings to list of floats
-    
-    for i in range(len(lst)): 
-        list_float.append(float(lst[i]))
-    
-    return list_float
-
-def infection_percentage(lst)             :
-        
-    """
-    Parameters: list of floats containing % of covid infections and % of 
-    population for each race in the chosen state, with % of covid infections 
-    occupying odd list positions and % of population in the respective even 
-    list position
-    Returns: list of floats
-    Does: calculated % of covid cases / by % of population for each race,
-    appends values to "list_infection"
-    """
-    
-# defines variable
-    
-    list_infection = []
-    
-# divides list items to get new values, appends new values and respective
-# strings to "list_infection"
-    
-    list_infection.append(lst[0] / lst[1])
-    list_infection.append(lst[2] / lst[3])
-    list_infection.append(lst[4] / lst[5])
-    list_infection.append(lst[6] / lst[7])
-        
-    return list_infection
-
-def barplot(lst1, lst2, state):
-    
-    """
-    Parameters: list of floats, list of integers, string input for state
-    Returns: a bar plot with 4 bars, poverty rate % as x-axis and Covid
-    representation as y-axis
-    Does: graphs data by using values from lst2 * 100 for x values and 
-    values from lst1 for y values, adds title, legend, and axis titles, 
-    changes color and width of bars
-    """
-    
-# plots bar graphs using data from lst1 and lst2, alters bar graph
-# width, color, and label
-    
-    if lst2[0] != 0:
-        plt.bar(lst2[0] * 100, lst1[0], color = "blue", width = 1, 
-                label = "White")
-    else:
-        print("No data for White population")
-        
-    if lst2[1] != 0:
-        plt.bar(lst2[1] * 100, lst1[1], color = "red", width = 1, 
-                label = "Black")
-    else:
-        print("No data for Black population")
-    if lst2[2] != 0:
-        plt.bar(lst2[2] * 100, lst1[2], color = "green", width = 1, 
-                label = "Hispanic")
-    else:
-        print("No data for Hispanic population")
-    if lst2[3] != 0:
-        plt.bar(lst2[3] * 100, lst1[3], color = "purple", width = 1,
-                label = "Asian")
-    else: print("No data for Asian population")
-        
-# creates plot title, creates x and y axis titles, adds legend
-    
-    plt.title("Representation of Covid Cases vs Poverty Rate by Race in" \
-              " {}".format(state))
-    plt.xlabel("Poverty Rate % by Race (2019)")
-    plt.ylabel("% of Covid Cases / % of Population")   
-    plt.legend()
-
+def plot_pie(list, name ):
+    '''
+    Parameters: plotting pie chart
+    Return type: pie chart
+    '''
+   
+    sizes = list[0]
+    #create an explode to highlight white vaccination in comparison to other minorities
+    explode = []
+    for i in range(len(sizes)):
+        row = sizes[i]
+        if row == sizes[0]:
+            row = 0.1
+        else:
+            row = 0
+        explode.append(row)
+       
+    #plotting the bar graph
+    plt.pie(sizes ,shadow=True, labels = list[1], explode = explode,colors = None,pctdistance = 0.8,autopct = '%1.1f%%')
+   
+    #creating a legend
+    plt.legend(prop = {"size":10}, loc = "upper right",bbox_to_anchor = (0.5,1.7))
+   
+    plt.axis('equal')
+    #creating a Title
+    plt.title(label = name+"'s Racial and Ethnic disparities in Covid-19 Vaccination", fontsize = 'x-large')
+   
+    plt.show()
+# main function
 if __name__ == "__main__":
+   
+    filename= "raw_data.csv"
+    name = input("Enter a state to see the racial disparity in Vacination.\nCase Sensitive (ex Minnesota or North Carolina)\n")
+    file = read_csvfile(filename, name)
+    clean_rows = clean_row(file)
+    plot = plot_pie(clean_rows, name )
+    ethnicity = include_ethnicity(file)
+    print(ethnicity)
     
-# operates functions
     
-    infections = read_csv(filename1)
-    poverty = read_csv(filename2)
-    
-# asks user to input the state they want to analyze
-    
-    state_choice = str(input("Which state would you like to analyze? Sample" \
-                             " Input: Alabama\n"))
-    print()
-    state_data = state_selection_infection(infections, state_choice)
-    float_infections = string_to_float(state_data)
-    infection_percent = infection_percentage(float_infections)
-    poverty_data = state_selection_poverty(poverty, state_choice)
-    poverty_float = string_to_float(poverty_data)
-    barplot(infection_percent, poverty_float, state_choice)
